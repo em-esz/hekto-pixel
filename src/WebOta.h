@@ -31,7 +31,7 @@ class WebOta {
 
         void init(AsyncWebServer *server) {
             server->on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(200, "text/html", "<form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
+                request->send(200, "text/html", F("<html><head><title>Firmware update</title><body><form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form></body></html>"));
             });
 
             server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){

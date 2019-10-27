@@ -1,62 +1,62 @@
 #include "FastLED_NeoMatrix.h"
+#include "Arduino.h"
+
+typedef FastLED_NeoMatrix Canvas;
 
 class Animation {
-protected:
-    FastLED_NeoMatrix *canvas;
 public:
     int interval = 100;
+    String name;
 public:
-    Animation(FastLED_NeoMatrix *canvas) {
-        this->canvas = canvas;
-    }
-    virtual void renderFrame() = 0;
+    Animation() { }
+    virtual boolean renderFrame(Canvas *canvas) = 0;
 };
 
-class Player {
+class AnimationPlayer {
 private:
     Animation *animation;
-    FastLED_NeoMatrix *canvas;
+    Canvas *canvas;
     long lastRender = 0;
 public:
-    Player(FastLED_NeoMatrix *canvas) {
+    AnimationPlayer(Canvas *canvas) {
         this->canvas = canvas;
     }
     void update(long currentTime);
     void setAnimation(Animation *animation);
 };
 
-class TestAnimation: public Animation {
-public:
-    void renderFrame();
-};
 
-
-void Player::update(long currentTime) {
+void AnimationPlayer::update(long currentTime) {
+    if (animation == NULL) {
+        return;
+    }
     if (lastRender + animation->interval <= currentTime) {
-        animation->renderFrame();
         lastRender = currentTime;
-        canvas->show();
+        if (animation->renderFrame(this->canvas)) {
+            canvas->show();
+        }
     }
 }
 
-void Player::setAnimation(Animation *animation) {
+void AnimationPlayer::setAnimation(Animation *animation) {
     this->animation = animation;
 }
 
-class Blink : public Animation {
+class Test : public Animation {
     private:
         uint8_t current = 0;
         boolean isOn = false;
     public:
-        Blink(FastLED_NeoMatrix *canvas) : Animation(canvas) {
+        Test() : Animation() {
             interval = 1000;
+            name = "test";
         }
-        void renderFrame() {
+        boolean renderFrame(Canvas *canvas) {
             if (isOn) {
                 canvas->clear();
             } else {
                 canvas->fillScreen(canvas->Color(255, 0, 0));
-                canvas->drawLine(0, 0, 3, 0, canvas->CRGBtoint32(CRGB::Green));
+                canvas->drawRect(0, 0, 4, 2, canvas->Color(0, 255, 0));
                 canvas->drawPixel(5, 0, canvas->CRGBtoint32(CRGB::Blue));
             }
             isOn = !isOn;
@@ -64,6 +64,41 @@ class Blink : public Animation {
             if (current == canvas->width()) {
                 current = 0;
             }
+            return true;
+        }
+};
+
+class BlinkBuiltInLed : public Animation {
+    private:
+       int ledState = LOW;
+       const int ledPin = 2;
+    public:
+        BlinkBuiltInLed() : Animation() {
+            name = "ledblink";
+            interval = 1000;
+            pinMode(ledPin, OUTPUT);
+        }
+        boolean renderFrame(Canvas *canvas) {
+            ledState = not(ledState);
+            digitalWrite(ledPin,  ledState);
+            return false;
+        }
+
+};
+
+class RandomNoise: public Animation {
+    public:
+        RandomNoise() : Animation() {
+            name = "noise";
+            interval = 500;
+        }
+        boolean renderFrame(Canvas *canvas) {
+            for (int16_t x = 0; x < canvas->width(); x++) {
+                for (int16_t y = 0; y < canvas->height(); y++) {
+                    canvas->drawPixel(x, y, canvas->Color(random(256), random(256), random(256)));
+                }
+            }
+            return true;
         }
 };
 
