@@ -32,7 +32,7 @@ export default {
   },
     methods: {
       sendPlay: function () {
-          fetch('http://' + window.location.host + '/update', { //play endpoint
+          fetch('http://' + window.location.host + '/animation/play/' + this.animationName, { //play endpoint
               method: 'POST',
               headers: {
               },
