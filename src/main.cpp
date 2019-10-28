@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <FS.h>
+#include <SPIFFS.h>
 #include "FastLED.h"
 #include "FastLED_NeoMatrix.h"
 #include "Animation.h"
@@ -11,7 +13,11 @@
 AsyncWebServer server(80);
 WebOta firmwareUpdate;
 
+#define WIFI "TBSCG_IoT"
+#define WIFI_PASS "VQxxsE@1d96Op"
+
 #define DATA_PIN 14
+#define STATUS_LED 2
 #define M_WIDTH 8
 #define M_HEIGHT 2
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
@@ -39,7 +45,8 @@ void setup() {
   }
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());    
+  Serial.println(WiFi.localIP());
+  digitalWrite(STATUS_LED, HIGH);
 
   if (!MDNS.begin(host)) {
     Serial.println(F("Error setting up MDNS responder!"));
@@ -49,11 +56,17 @@ void setup() {
   }
   Serial.println(F("mDNS responder started"));
 
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers");
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+
   firmwareUpdate.init(&server);
   hektoPixel.init(&server);
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
   FastLED.setBrightness(30);
 
+  SPIFFS.begin();
   matrix->begin();
   server.begin();
 }
@@ -62,6 +75,7 @@ void loop() {
   delay(1);
   if (firmwareUpdate.shouldReboot()) {
     Serial.println("Rebooting...");
+    digitalWrite(STATUS_LED, LOW);
     ESP.restart();
   }
 
