@@ -5,6 +5,9 @@
       <router-link to="/" v-slot="{ navigate, isExactActive  }">
         <b-button :type="isExactActive?'is-success':'is-link'" @click="navigate">Home</b-button>
       </router-link>
+      <router-link to="/preview" v-slot="{ navigate, isExactActive  }">
+        <b-button :type="isExactActive?'is-success':'is-link'" @click="navigate">Preview</b-button>
+      </router-link>
       <router-link to="/update" v-slot="{ navigate, isExactActive  }">
         <b-button :type="isExactActive?'is-success':'is-link'" @click="navigate">Update</b-button>
       </router-link>

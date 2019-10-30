@@ -11,10 +11,12 @@
 #include "WebOta.h"
 #include "HektoPixel.h"
 #include "ArtNet.h"
+#include "WebSocket.h"
 
 AsyncWebServer server(80);
 WebOta firmwareUpdate;
 ArtnetWifi artnet;
+AsyncWebSocket websocket("/ws");
 
 #define WIFI "TBSCG_IoT"
 #define WIFI_PASS "VQxxsE@1d96Op"
@@ -26,7 +28,7 @@ ArtnetWifi artnet;
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
 
 enum displayModes_t {Animation, Artnet} mode = Animation;
-long tic_loop = 0;
+long artnet_loop = 0, websocket_loop = 0;
 
 const char* host = "hektopixel";
 const char* ssid = WIFI;
@@ -66,7 +68,11 @@ void setup() {
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers");
+
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+
+  websocket.onEvent(onWsEvent);
+  server.addHandler(&websocket);
 
   firmwareUpdate.init(&server);
   hektoPixel.init(&server);
@@ -80,10 +86,10 @@ void setup() {
       global.data[i] = 0;
 
   tic_fps    = millis();
-  tic_loop   = millis();
+  artnet_loop   = millis();
+  websocket_loop   = millis();
   artnet.setArtDmxCallback(onDmxPacket);
 
-  
   server.on("/set", HTTP_GET, [] (AsyncWebServerRequest *request) {
       String message;
       if (request->hasParam("mode")) {
@@ -103,29 +109,32 @@ void setup() {
 }
 
 void loop() {
-  delay(1);
   if (firmwareUpdate.shouldReboot()) {
     Serial.println("Rebooting...");
     digitalWrite(STATUS_LED, LOW);
     ESP.restart();
   }
 
+  if ((millis() - websocket_loop) > 250) { //refresh of 4Hz
+    websocket.cleanupClients();
+    websocket.binaryAll((uint8_t*)ledsRaw, (size_t)900);
+    websocket_loop = millis();
+  }
 
-  artnet.read();
   switch(mode) {
-			case Animation:
-
-        player.update(millis());
-				break;
-			case Artnet:
-      // this section gets executed at a maximum rate of around 100Hz
-        if ((millis() - tic_loop) > 9) {
-          frameCounter++;
-          for (int i = 0; i < NUM_LEDS * 3; i++)
-            ledsRaw[i] = global.data[i];
-          FastLED.show();
-          tic_loop = millis();
-        }
-				break;
+    case Animation:
+      player.update(millis());
+      break;
+    case Artnet:
+      artnet.read();
+      // this section gets executed at a maximum rate of around 40Hz (Maximum ArtNet refresh rate)
+      if ((millis() - artnet_loop) > 25) {
+        frameCounter++;
+        for (int i = 0; i < NUM_LEDS * 3; i++)
+          ledsRaw[i] = global.data[i];
+        FastLED.show();
+        artnet_loop = millis();
+      }
+      break;
   }
 }
