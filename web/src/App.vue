@@ -1,35 +1,53 @@
 <template>
-  <div id="app" class="container">
+  <div id="app" class="container" style="margin-top: 2rem">
     <h1 class="title">hekto Pixel GUI</h1>
-    <div id="nav" class="buttons">
-      <router-link to="/" v-slot="{ navigate, isExactActive  }">
-        <b-button :type="isExactActive?'is-success':'is-link'" @click="navigate">Home</b-button>
-      </router-link>
-      <router-link to="/preview" v-slot="{ navigate, isExactActive  }">
-        <b-button :type="isExactActive?'is-success':'is-link'" @click="navigate">Preview</b-button>
-      </router-link>
-      <router-link to="/update" v-slot="{ navigate, isExactActive  }">
-        <b-button :type="isExactActive?'is-success':'is-link'" @click="navigate">Update</b-button>
-      </router-link>
-    </div>
+    <b-tabs type="is-boxed" class="block" v-model="activeTab">
+      <b-tab-item>
+        <router-link tag="div" :to="{ name: 'home' }" slot="header">Home</router-link>
+      </b-tab-item>
+      <b-tab-item>
+        <router-link tag="div" :to="{ name: 'preview' }" slot="header">Preview</router-link>
+      </b-tab-item>
+      <b-tab-item>
+        <router-link tag="div" :to="{ name: 'update' }" slot="header">Update</router-link>
+      </b-tab-item>
+    </b-tabs>
     <router-view/>
   </div>
 </template>
 
 <script>
     export default {
-        name: 'App',
         data() {
             return {
-
+                activeTab: null
             }
         },
-        methods: {
+        created() {
+            let x = 0
+            switch (this.$router.currentRoute.name) {
+                case 'update':
+                    x = 2
+                    break
+                case 'preview':
+                    x = 1
+                    break
+                default:
+                    x = 0
+                    break
+            }
 
+            this.activeTab = x
         }
     }
 </script>
 
-<style>
+<style lang="scss">
+.tabs a {
+  padding: 0 !important;
 
+  & div {
+    padding: .5rem 1rem;
+  }
+}
 </style>
