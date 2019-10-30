@@ -1,13 +1,14 @@
 #include "ESPAsyncWebServer.h"
 #include <functional>
 
-#define NUM_OF_ANIMATIONS 3
+#define NUM_OF_ANIMATIONS 4
 
 class WebAnimationSwitcher {
     private:
         Animation* animations[NUM_OF_ANIMATIONS] = {
             new BlinkBuiltInLed(),
             new Test(),
+            new Plasma(),
             new RandomNoise()
         };
         AnimationPlayer *player;

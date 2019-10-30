@@ -28,7 +28,6 @@ AsyncWebSocket websocket("/ws");
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
 
 enum displayModes_t {Animation, Artnet} mode = Animation;
-long artnet_loop = 0, websocket_loop = 0;
 
 const char* host = "hektopixel";
 const char* ssid = WIFI;
@@ -86,8 +85,6 @@ void setup() {
       global.data[i] = 0;
 
   tic_fps    = millis();
-  artnet_loop   = millis();
-  websocket_loop   = millis();
   artnet.setArtDmxCallback(onDmxPacket);
 
   server.on("/set", HTTP_GET, [] (AsyncWebServerRequest *request) {
@@ -115,10 +112,9 @@ void loop() {
     ESP.restart();
   }
 
-  if ((millis() - websocket_loop) > 250) { //refresh of 4Hz
+  EVERY_N_MILLISECONDS(250) { //refresh of 4Hz
     websocket.cleanupClients();
     websocket.binaryAll((uint8_t*)ledsRaw, (size_t)900);
-    websocket_loop = millis();
   }
 
   switch(mode) {
@@ -128,12 +124,10 @@ void loop() {
     case Artnet:
       artnet.read();
       // this section gets executed at a maximum rate of around 40Hz (Maximum ArtNet refresh rate)
-      if ((millis() - artnet_loop) > 25) {
-        frameCounter++;
+      EVERY_N_MILLISECONDS(25) {
         for (int i = 0; i < NUM_LEDS * 3; i++)
           ledsRaw[i] = global.data[i];
         FastLED.show();
-        artnet_loop = millis();
       }
       break;
   }
