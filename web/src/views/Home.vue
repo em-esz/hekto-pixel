@@ -3,7 +3,7 @@
     <h2 class="subtitle">Mode</h2>
     <div class="buttons">
       <b-button type="is-primary" @click="sendMode('Artnet')">ArtNet</b-button>
-      <b-button type="is-primary" @click="sendMode('Artnet')">Animation</b-button>
+      <b-button type="is-primary" @click="sendMode('Animation')">Animation</b-button>
     </div>
     <h2 class="subtitle">Animations</h2>
     <pre>
