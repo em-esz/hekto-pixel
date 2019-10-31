@@ -11,6 +11,9 @@
       <b-tab-item>
         <router-link tag="div" :to="{ name: 'update' }" slot="header">Update</router-link>
       </b-tab-item>
+      <b-tab-item>
+        <router-link tag="div" :to="{ name: 'fs' }" slot="header">File System</router-link>
+      </b-tab-item>
     </b-tabs>
     <router-view/>
   </div>
