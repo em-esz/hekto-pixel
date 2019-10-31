@@ -1,7 +1,7 @@
 #include "ESPAsyncWebServer.h"
 #include <functional>
 
-#define NUM_OF_ANIMATIONS 4
+#define NUM_OF_ANIMATIONS 5
 
 class WebAnimationSwitcher {
     private:
@@ -9,17 +9,25 @@ class WebAnimationSwitcher {
             new BlinkBuiltInLed(),
             new Test(),
             new Plasma(),
-            new RandomNoise()
+            new RandomNoise(),
+            new TextAnimation()
         };
         AnimationPlayer *player;
 
         void handlePlayRequest(AsyncWebServerRequest *request) {
-                Serial.print(F("Looking for animation: "));
-                Serial.println(request->pathArg(0));
                 Animation *animation = this->findAnimation(request->pathArg(0));
                 if (animation == NULL) {
                     request->send(404);
                 } else {
+                    if (animation->name == "text") {
+                        if (request->hasParam("msg", true)) {
+                            const String& msg = request->getParam("msg", true)->value();
+                            TextAnimation* textAnimation = (TextAnimation*)animation;
+                            textAnimation->setMessage(msg);
+                        } else {
+                            request->send(400);
+                        }
+                    }
                     player->setAnimation(animation);
                     request->send(200);
                 }

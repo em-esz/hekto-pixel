@@ -19,6 +19,9 @@ public:
 public:
     Animation() { }
     virtual boolean renderFrame(Canvas *canvas) = 0;
+    virtual void init(Canvas *canvas) {
+        canvas->clear();
+    }
 };
 
 class AnimationPlayer {
@@ -49,6 +52,7 @@ void AnimationPlayer::update(long currentTime) {
 
 void AnimationPlayer::setAnimation(Animation *animation) {
     this->animation = animation;
+    this->animation->init(canvas);
 }
 
 class Test : public Animation {
@@ -180,6 +184,38 @@ class RandomNoise: public Animation {
                 for (int16_t y = 0; y < canvas->height(); y++) {
                     canvas->drawPixel(x, y, canvas->Color(random(256), random(256), random(256)));
                 }
+            }
+            return true;
+        }
+};
+
+class TextAnimation: public Animation {
+    private:
+        int pos = 0;
+        int textLength = 0;
+    public:
+        String message = "";
+    public:
+        TextAnimation(): Animation() {
+            name = "text";
+            interval = 100;
+        }
+        void init(Canvas *canvas) {
+            Animation::init(canvas);
+            canvas->setTextWrap(false);
+            canvas->setTextColor(canvas->Color(255, 0, 0));
+            pos = canvas->width();
+        }
+        void setMessage(const String& msg) {
+            this->message = msg;    
+            this->textLength = msg.length() * 6;
+        }
+        boolean renderFrame(Canvas *canvas) {
+            canvas->clear();
+            canvas->setCursor(pos--, 4);
+            canvas->print(message);
+            if (pos < -(this->textLength)) {
+                pos = canvas->width();
             }
             return true;
         }
