@@ -18,9 +18,6 @@ WebOta firmwareUpdate;
 ArtnetWifi artnet;
 AsyncWebSocket websocket("/ws");
 
-#define WIFI "TBSCG_IoT"
-#define WIFI_PASS "VQxxsE@1d96Op"
-
 #define DATA_PIN 14
 #define STATUS_LED 2
 #define M_WIDTH 20
