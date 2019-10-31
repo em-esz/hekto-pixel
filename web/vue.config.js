@@ -1,12 +1,13 @@
 module.exports = {
     productionSourceMap: false,
     configureWebpack: config => {
-        config.output.filename = '[name].js'
-        config.output.chunkFilename = '[name].js'
+        config.output.filename = 'js/[name].js'
+        config.output.chunkFilename = 'js/[name].js'
     },
     css: {
         extract: {
-            filename: '[name].css',
+            filename: 'css/[name].css',
+            chunkFilename: 'css/[name].css'
         },
     }
 };
