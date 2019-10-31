@@ -62,7 +62,7 @@ void setup() {
   Serial.println(F("mDNS responder started"));
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers");
 
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
