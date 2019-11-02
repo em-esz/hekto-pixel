@@ -46,12 +46,12 @@ export default {
                   for(let i = 0; i < view.length; i++ ) {
                       switch (i%3) {
                           case 0:
-                              g = view[i].toString(16);
-                              if (g.length < 2) g = '0' + g;
+                              r = view[i].toString(16);
+                              if (g.length < 2) r = '0' + r;
                               break;
                           case 1:
-                              r = view[i].toString(16);
-                              if (r.length < 2) r = '0' + r;
+                              g = view[i].toString(16);
+                              if (r.length < 2) g = '0' + g;
                               break;
                           case 2:
                               b = view[i].toString(16);

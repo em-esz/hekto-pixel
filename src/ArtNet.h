@@ -17,21 +17,20 @@ void onDmxPacket(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *
         fps = 1000 * packetCounter / (millis() - tic_fps);
         tic_fps = millis();
         packetCounter = 0;
-        Serial.print("Packets per second = ");
+        Serial.print(F("Packets per second = "));
         Serial.print(fps);
         Serial.println();
     }
-
     if (universe == 1) {
         global.sequence = sequence;
-        if (length < 480)
+        if (length <= 480)
         global.length = length;
         for (int i = 0; i < global.length; i++)
         global.data[i] = data[i];
     }
     if (universe == 2) {
         global.sequence = sequence;
-        if (length < 480)
+        if (length <= 420)
         global.length = length;
         for (int i = 0; i < global.length; i++)
         global.data[480 + i] = data[i];
