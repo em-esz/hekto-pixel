@@ -3,10 +3,10 @@
 #include <ESPmDNS.h>
 #include <FS.h>
 #include <SPIFFS.h>
-#include <ArtnetWifi.h>          // https://github.com/rstephan/ArtnetWifi
+#include <ArtnetWifi.h>
 #include "FastLED.h"
 #include "FastLED_NeoMatrix.h"
-#include "Animation.h"
+#include "animation.h"
 #include "ESPAsyncWebServer.h"
 #include "WebOta.h"
 #include "HektoPixel.h"
