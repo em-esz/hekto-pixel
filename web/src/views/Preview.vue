@@ -46,16 +46,13 @@ export default {
                   for(let i = 0; i < view.length; i++ ) {
                       switch (i%3) {
                           case 0:
-                              r = view[i].toString(16);
-                              if (g.length < 2) r = '0' + r;
+                              r = ('0' + view[i].toString(16)).substr(-2);
                               break;
                           case 1:
-                              g = view[i].toString(16);
-                              if (r.length < 2) g = '0' + g;
+                              g = ('0' + view[i].toString(16)).substr(-2);
                               break;
                           case 2:
-                              b = view[i].toString(16);
-                              if (b.length < 2) b = '0' + b;
+                              b = ('0' + view[i].toString(16)).substr(-2);
                               hexArray.push('#' + r + g + b);
                               break;
                       }
