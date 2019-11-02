@@ -6,7 +6,7 @@
 #include <ArtnetWifi.h>
 #include "FastLED.h"
 #include "FastLED_NeoMatrix.h"
-#include "animation.h"
+#include "Animation.h"
 #include "ESPAsyncWebServer.h"
 #include "WebOta.h"
 #include "HektoPixel.h"
