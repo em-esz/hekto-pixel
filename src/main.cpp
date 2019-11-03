@@ -24,7 +24,7 @@ AsyncWebSocket websocket("/ws");
 #define M_HEIGHT 15
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
 
-enum displayModes_t {Animation, Artnet} mode = Animation;
+enum displayModes_t {ANIMATION, ARTNET} mode = ANIMATION;
 
 const char* host = "hektopixel";
 const char* ssid = WIFI;
@@ -88,8 +88,8 @@ void setup() {
       String message;
       if (request->hasParam("mode")) {
           message = request->getParam("mode")->value();
-          if (message == "Artnet") mode = Artnet;
-          if (message == "Animation") mode = Animation;
+          if (message == "Artnet") mode = ARTNET;
+          if (message == "Animation") mode = ANIMATION;
       } else {
           message = "No mode sent";
       }
@@ -115,10 +115,10 @@ void loop() {
   }
 
   switch(mode) {
-    case Animation:
+    case ANIMATION:
       player.update(millis());
       break;
-    case Artnet:
+    case ARTNET:
       artnet.read();
       // this section gets executed at a maximum rate of around 40Hz (Maximum ArtNet refresh rate)
       EVERY_N_MILLISECONDS(25) {

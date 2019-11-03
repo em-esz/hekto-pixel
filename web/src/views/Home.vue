@@ -8,8 +8,8 @@
     <h2 class="subtitle">Animations</h2>
     <pre>
       Available animations
-      - test
-      - ledblink - blinks the LED built into the ESP32 controller
+      - plasma
+      - text - displays a scrolling text
       - noise - sets every pixel on the board to a random color
     </pre>
 

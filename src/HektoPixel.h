@@ -1,13 +1,15 @@
 #include "ESPAsyncWebServer.h"
 #include <functional>
+#include "Animation.h"
+#include "animations/Noise.h"
+#include "animations/Plasma.h"
+#include "animations/Text.h"
 
-#define NUM_OF_ANIMATIONS 5
+#define NUM_OF_ANIMATIONS 3
 
 class WebAnimationSwitcher {
     private:
         Animation* animations[NUM_OF_ANIMATIONS] = {
-            new BlinkBuiltInLed(),
-            new Test(),
             new Plasma(),
             new RandomNoise(),
             new TextAnimation()

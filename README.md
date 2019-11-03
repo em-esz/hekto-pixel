@@ -7,8 +7,8 @@ With
 POST /animation/play/{name} you can start an animation
 
 Available animations
-- test 
-- ledblink - blinks the LED built into the ESP32 controller
+- plasma
+- text - displays a scrolling text
 - noise - sets every pixel on the board to a random color
 
 # web GUI - go to /web
