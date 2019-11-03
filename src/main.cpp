@@ -16,7 +16,7 @@
 
 AsyncWebServer server(80);
 WebOta firmwareUpdate;
-ArtnetWifi artnet;
+ArtnetClient artnet;
 AsyncWebSocket websocket("/ws");
 
 #define STATUS_LED 2
@@ -69,15 +69,6 @@ void setup() {
   firmwareUpdate.init(&server);
   webPlayer.init(&server);
 
-  global.sequence = 0;
-  global.length = 480;
-  global.data = (uint8_t *)malloc(1024);
-  for (int i = 0; i < 1024; i++)
-      global.data[i] = 0;
-
-  tic_fps    = millis();
-  artnet.setArtDmxCallback(onDmxPacket);
-
   server.on("/set", HTTP_GET, [] (AsyncWebServerRequest *request) {
       String message;
       if (request->hasParam("mode")) {
@@ -112,11 +103,12 @@ void loop() {
       player.update(millis());
       break;
     case ARTNET:
-      artnet.read();
+      artnet.update();
       // this section gets executed at a maximum rate of around 40Hz (Maximum ArtNet refresh rate)
       EVERY_N_MILLISECONDS(25) {
+        uint8_t* artnetData = artnet.getData();
         for (int i = 0; i < NUM_LEDS * 3; i++)
-          ledsRaw[i] = global.data[i];
+          ledsRaw[i] = artnetData[i];
         board.show();
       }
       break;

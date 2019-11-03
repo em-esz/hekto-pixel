@@ -1,38 +1,38 @@
-// Global universe buffer
-struct {
-uint16_t length;
-uint8_t sequence;
-uint8_t *data;
-} global;
+#include <ArtnetWifi.h>
 
-// keep track of the timing of the function calls
-long tic_fps = 0;
-unsigned long packetCounter = 0;
-float fps = 0;
+static std::function <void (uint16_t, uint16_t, uint8_t, uint8_t*)>  dmxCallback = [](uint16_t universe, uint16_t length, uint8_t sequence, uint8_t * data){};
 
-void onDmxPacket(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t * data) {
-    // print some feedback
-    packetCounter++;
-    if ((millis() - tic_fps) > 1000) {
-        fps = 1000 * packetCounter / (millis() - tic_fps);
-        tic_fps = millis();
-        packetCounter = 0;
-        Serial.print(F("Packets per second = "));
-        Serial.print(fps);
-        Serial.println();
-    }
-    if (universe == 1) {
-        global.sequence = sequence;
-        if (length <= 480)
-        global.length = length;
-        for (int i = 0; i < global.length; i++)
-        global.data[i] = data[i];
-    }
-    if (universe == 2) {
-        global.sequence = sequence;
-        if (length <= 420)
-        global.length = length;
-        for (int i = 0; i < global.length; i++)
-        global.data[480 + i] = data[i];
-    }
-} // onDmxpacket
+class ArtnetClient {
+    private:
+        ArtnetWifi artnet;
+        uint8_t *data = (uint8_t *)malloc(1024);
+        boolean sequences[2] = {false, false};
+    protected:
+        void onDmxPacket(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t * data) {
+            if (universe == 1) {
+                for (int i = 0; i < length; i++)
+                    this->data[i] = data[i];
+            }
+            if (universe == 2) {
+                for (int i = 0; i < length; i++)
+                    this->data[480 + i] = data[i];
+            }
+        } 
+    public:
+        ArtnetClient() {
+            using namespace std::placeholders;
+            dmxCallback = std::bind(&ArtnetClient::onDmxPacket, this, _1, _2, _3, _4);
+            artnet.setArtDmxCallback([](uint16_t universe, uint16_t length, uint8_t sequence, uint8_t * data){
+                dmxCallback(universe, length, sequence, data);
+            });
+        }
+        void update() {
+            artnet.read();
+        }
+        void begin() {
+            artnet.begin();
+        }
+        uint8_t* getData() {
+            return data;
+        }
+};
