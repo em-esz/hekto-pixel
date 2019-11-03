@@ -1,7 +1,5 @@
 #include <ArtnetWifi.h>
 
-static std::function <void (uint16_t, uint16_t, uint8_t, uint8_t*)>  dmxCallback = [](uint16_t universe, uint16_t length, uint8_t sequence, uint8_t * data){};
-
 class ArtnetClient {
     private:
         ArtnetWifi artnet;
@@ -21,10 +19,7 @@ class ArtnetClient {
     public:
         ArtnetClient() {
             using namespace std::placeholders;
-            dmxCallback = std::bind(&ArtnetClient::onDmxPacket, this, _1, _2, _3, _4);
-            artnet.setArtDmxCallback([](uint16_t universe, uint16_t length, uint8_t sequence, uint8_t * data){
-                dmxCallback(universe, length, sequence, data);
-            });
+            artnet.setArtDmxCallback(std::bind(&ArtnetClient::onDmxPacket, this, _1, _2, _3, _4));
         }
         void update() {
             artnet.read();
@@ -36,3 +31,4 @@ class ArtnetClient {
             return data;
         }
 };
+
