@@ -13,12 +13,12 @@
 #include "ArtNet.h"
 #include "WebSocket.h"
 
+
 AsyncWebServer server(80);
 WebOta firmwareUpdate;
 ArtnetWifi artnet;
 AsyncWebSocket websocket("/ws");
 
-#define DATA_PIN 14
 #define STATUS_LED 2
 #define M_WIDTH 20
 #define M_HEIGHT 15
@@ -30,14 +30,10 @@ const char* host = "hektopixel";
 const char* ssid = WIFI;
 const char* password = WIFI_PASS;
 
-CRGB leds[NUM_LEDS];
-uint8_t * ledsRaw = (uint8_t *)leds;
-
-FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, M_WIDTH, M_HEIGHT, 
-  NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG );
-
-AnimationPlayer player(matrix);
-WebAnimationSwitcher hektoPixel(&player);
+HektoPixel board(M_WIDTH, M_HEIGHT);
+uint8_t * ledsRaw = (uint8_t *)(board.getLeds());;
+AnimationPlayer player((Canvas*)(board.getMatrix()));
+WebAnimationSwitcher webPlayer(&player);
 
 void setup() {
   Serial.begin(115200);
@@ -71,9 +67,7 @@ void setup() {
   server.addHandler(&websocket);
 
   firmwareUpdate.init(&server);
-  hektoPixel.init(&server);
-  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-  FastLED.setBrightness(100);
+  webPlayer.init(&server);
 
   global.sequence = 0;
   global.length = 480;
@@ -98,13 +92,12 @@ void setup() {
 
   artnet.begin();
   SPIFFS.begin();
-  matrix->begin();
   server.begin();
 }
 
 void loop() {
   if (firmwareUpdate.shouldReboot()) {
-    Serial.println("Rebooting...");
+    Serial.println(F("Firmware updated. Rebooting..."));
     digitalWrite(STATUS_LED, LOW);
     ESP.restart();
   }
@@ -124,7 +117,7 @@ void loop() {
       EVERY_N_MILLISECONDS(25) {
         for (int i = 0; i < NUM_LEDS * 3; i++)
           ledsRaw[i] = global.data[i];
-        FastLED.show();
+        board.show();
       }
       break;
   }
