@@ -6,12 +6,11 @@
 #include <ArtnetWifi.h>
 #include "FastLED.h"
 #include "FastLED_NeoMatrix.h"
-#include "Animation.h"
 #include "ESPAsyncWebServer.h"
 #include "WebOta.h"
 #include "HektoPixel.h"
-#include "ArtNet.h"
 #include "WebSocket.h"
+#include "animations/Noise.h";
 
 
 AsyncWebServer server(80);
@@ -27,10 +26,15 @@ const char* host = "hektopixel";
 const char* ssid = WIFI;
 const char* password = WIFI_PASS;
 
-HektoPixel board(M_WIDTH, M_HEIGHT);
+Animation* animations[1] = {
+  new RandomNoise()
+};
+
+Board board(M_WIDTH, M_HEIGHT);
 uint8_t * ledsRaw = (uint8_t *)(board.getLeds());;
 AnimationPlayer player((Canvas*)(board.getMatrix()));
-WebAnimationSwitcher webPlayer(&player);
+
+WebManager webManager(&player, animations);
 
 void setup() {
   Serial.begin(115200);

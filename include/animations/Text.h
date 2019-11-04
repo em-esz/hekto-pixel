@@ -1,4 +1,4 @@
-#include "Animation.h"
+#include "HektoPixel.h"
 
 class TextAnimation: public Animation {
     private:

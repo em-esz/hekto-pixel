@@ -1,5 +1,5 @@
 #include <ArtnetWifi.h>
-#include <Animation.h>
+#include <HektoPixel.h>
 
 typedef std::function<void (uint8_t * data)> FrameCallbackFunc;
 

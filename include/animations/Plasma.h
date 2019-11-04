@@ -1,6 +1,6 @@
 
 #include "FastLED.h"
-#include "Animation.h"
+#include "HektoPixel.h"
 
 DEFINE_GRADIENT_PALETTE( pit ) {
     0,     3,   3,   3,

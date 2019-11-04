@@ -1,4 +1,4 @@
-#include "Animation.h"
+#include "HektoPixel.h"
 
 class RandomNoise: public Animation {
     public:
