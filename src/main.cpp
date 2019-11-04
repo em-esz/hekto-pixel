@@ -16,15 +16,12 @@
 
 AsyncWebServer server(80);
 WebOta firmwareUpdate;
-ArtnetClient artnet;
 AsyncWebSocket websocket("/ws");
 
 #define STATUS_LED 2
 #define M_WIDTH 20
 #define M_HEIGHT 15
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
-
-enum displayModes_t {ANIMATION, ARTNET} mode = ANIMATION;
 
 const char* host = "hektopixel";
 const char* ssid = WIFI;
@@ -69,19 +66,6 @@ void setup() {
   firmwareUpdate.init(&server);
   webPlayer.init(&server);
 
-  server.on("/set", HTTP_GET, [] (AsyncWebServerRequest *request) {
-      String message;
-      if (request->hasParam("mode")) {
-          message = request->getParam("mode")->value();
-          if (message == "Artnet") mode = ARTNET;
-          if (message == "Animation") mode = ANIMATION;
-      } else {
-          message = "No mode sent";
-      }
-      request->send(200, "text/plain", "Ok");
-  });
-
-  artnet.begin();
   SPIFFS.begin();
   server.begin();
 }
@@ -97,20 +81,5 @@ void loop() {
     websocket.cleanupClients();
     websocket.binaryAll((uint8_t*)ledsRaw, (size_t)900);
   }
-
-  switch(mode) {
-    case ANIMATION:
-      player.update(millis());
-      break;
-    case ARTNET:
-      artnet.update();
-      // this section gets executed at a maximum rate of around 40Hz (Maximum ArtNet refresh rate)
-      EVERY_N_MILLISECONDS(25) {
-        uint8_t* artnetData = artnet.getData();
-        for (int i = 0; i < NUM_LEDS * 3; i++)
-          ledsRaw[i] = artnetData[i];
-        board.show();
-      }
-      break;
-  }
+  player.update(millis());
 }
