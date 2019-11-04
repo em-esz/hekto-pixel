@@ -14,7 +14,7 @@ class TextAnimation: public Animation {
         void init(Canvas *canvas) {
             Animation::init(canvas);
             canvas->setTextWrap(false);
-            canvas->setTextColor(canvas->Color(255, 0, 0));
+            canvas->setTextColor(canvas->Color(0, 255, 0));
             pos = canvas->width();
         }
         void setMessage(const String& msg) {

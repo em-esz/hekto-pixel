@@ -23,7 +23,7 @@ class HektoPixel {
                     this->width_,
                     this->height_, 
                     NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
-            FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(leds, this->size_);
+            FastLED.addLeds<WS2811, LED_DATA_PIN, RGB>(leds, this->size_);
             FastLED.setBrightness(100);
         }
         uint8_t width() {
