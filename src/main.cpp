@@ -10,7 +10,10 @@
 #include "WebOta.h"
 #include "HektoPixel.h"
 #include "WebSocket.h"
-#include "animations/Noise.h";
+#include "animations/Noise.h"
+#include "animations/Text.h"
+#include "animations/ArtNet.h"
+#include "animations/Plasma.h"
 
 
 AsyncWebServer server(80);
@@ -21,20 +24,24 @@ AsyncWebSocket websocket("/ws");
 #define M_WIDTH 20
 #define M_HEIGHT 15
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
+#define NUM_OF_ANIMATIONS 4
 
 const char* host = "hektopixel";
 const char* ssid = WIFI;
 const char* password = WIFI_PASS;
 
-Animation* animations[1] = {
-  new RandomNoise()
+ArtnetAnimation artnetAnimation;
+
+Animation* animations[NUM_OF_ANIMATIONS] = {
+  new RandomNoise(),
+  new TextAnimation(),
+  new ArtnetAnimation(),
+  new Plasma()
 };
 
 Board board(M_WIDTH, M_HEIGHT);
-uint8_t * ledsRaw = (uint8_t *)(board.getLeds());;
-AnimationPlayer player((Canvas*)(board.getMatrix()));
-
-WebManager webManager(&player, animations);
+AnimationPlayer player(board);
+WebManager webManager(player, animations, NUM_OF_ANIMATIONS);
 
 void setup() {
   Serial.begin(115200);
@@ -67,8 +74,8 @@ void setup() {
   websocket.onEvent(onWsEvent);
   server.addHandler(&websocket);
 
-  firmwareUpdate.init(&server);
-  webPlayer.init(&server);
+  firmwareUpdate.init(server);
+  webManager.init(server);
 
   SPIFFS.begin();
   server.begin();
@@ -83,7 +90,8 @@ void loop() {
 
   EVERY_N_MILLISECONDS(250) { //refresh of 4Hz
     websocket.cleanupClients();
-    websocket.binaryAll((uint8_t*)ledsRaw, (size_t)900);
+    websocket.binaryAll((uint8_t*)board.getLeds(), (size_t)900);
   }
+
   player.update(millis());
 }

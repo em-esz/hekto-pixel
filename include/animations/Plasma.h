@@ -31,7 +31,7 @@ class Plasma: public Animation {
             name = "plasma";
             interval = 25;
         }
-        boolean renderFrame(Canvas *canvas) {
+        boolean renderFrame(Canvas &canvas) {
             CRGBPalette16 Pal( pit );
 
             //modulate the position so that it increases/decreases x
@@ -77,7 +77,7 @@ class Plasma: public Animation {
                 //it´s basically a rainbow mapping with an inverted brightness mask
                 CRGB overlay = CHSV(noise[0][y][x], 255, noise[0][x][y]);
                 //here the actual colormapping happens - note the additional colorshift caused by the down right pixel noise[0][15][15]
-                canvas->drawPixel(x,y,ColorFromPalette( Pal, noise[0][Width-1][Height-1] + noise[0][x][y]) + overlay);
+                canvas.drawPixel(x,y,ColorFromPalette( Pal, noise[0][Width-1][Height-1] + noise[0][x][y]) + overlay);
                 }
             }
             return true;

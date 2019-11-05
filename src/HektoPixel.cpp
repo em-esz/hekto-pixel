@@ -1,4 +1,3 @@
-#pragma once
 #include "ESPAsyncWebServer.h"
 #include <functional>
 #include "HektoPixel.h"
@@ -22,8 +21,8 @@ uint8_t Board::width() {
 uint8_t Board::height() {
     return this->height_;
 }
-const Canvas* Board::getMatrix() {
-    return this->matrix;
+Canvas& Board::getMatrix() {
+    return *matrix;
 }
 CRGB* Board::getLeds() {
     return this->leds;
@@ -42,34 +41,30 @@ void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
         request->send(404);
     } else {
         if (animation->name == "text") {
-            if (request->hasParam("msg", true)) {
-                // const String& msg = request->getParam("msg", true)->value();
-                // TextAnimation* textAnimation = (TextAnimation*)animation;
-                // textAnimation->setMessage(msg);
-            } else {
+            if (!animation->configure(request)) {
                 request->send(400);
             }
         }
-        player->setAnimation(animation);
+        player.setAnimation(animation);
         request->send(200);
     }
 }
 
 Animation* WebManager::findAnimation(String name) {
-    for (int i = 0; i < NUM_OF_ANIMATIONS; i++) {
+    for (int i = 0; i < numberOfAnimations; i++) {
         if (animations[i]->name == name) {
             return animations[i];
         }
     }
     return NULL;
 }
-WebManager::WebManager(AnimationPlayer *player, Animation* animations[]) {
-    this->animations = animations;
-    this->player = player;
+WebManager::WebManager(AnimationPlayer &_player, Animation **_animations, uint8_t _numberOfAnimations): player(_player) {
+    animations = _animations;
+    numberOfAnimations = _numberOfAnimations;
 }
 
-void WebManager::init(AsyncWebServer *server) {
-    server->on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, std::bind(&WebManager::handlePlayRequest, this, std::placeholders::_1));
+void WebManager::init(AsyncWebServer &server) {
+    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, std::bind(&WebManager::handlePlayRequest, this, std::placeholders::_1));
 }
 
 void AnimationPlayer::update(long currentTime) {
@@ -78,13 +73,28 @@ void AnimationPlayer::update(long currentTime) {
     }
     if (lastRender + animation->interval <= currentTime) {
         lastRender = currentTime;
-        if (animation->renderFrame(this->canvas)) {
-            canvas->show();
+        if (animation->renderFrame(board.getMatrix())) {
+            board.show();
         }
     }
 }
 
 void AnimationPlayer::setAnimation(Animation* animation) {
+    if (this->animation != NULL) {
+        animation->stop();
+    }
     this->animation = animation;
-    this->animation->init(canvas);
+    this->animation->start(this->board);
+}
+
+void Animation::start(Board &board) {
+    board.getMatrix().clear();
+}
+
+void Animation::stop() {
+
+}
+
+boolean Animation::configure(AsyncWebServerRequest *request) {
+    return true;
 }

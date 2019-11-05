@@ -1,8 +1,9 @@
 #pragma once
 #include "ESPAsyncWebServer.h"
 #include <functional>
+#include <FastLED_NeoMatrix.h>
+#include <FastLED.h>
 
-#define NUM_OF_ANIMATIONS 3
 #define LED_DATA_PIN 14
 
 typedef FastLED_NeoMatrix Canvas;
@@ -18,21 +19,10 @@ public:
     Board(uint8_t width, uint8_t height);
     uint8_t width();
     uint8_t height();
-    const Canvas * getMatrix();
+    Canvas& getMatrix();
     CRGB* getLeds();
     void show();
     void setBrightness(uint8_t brightness);
-};
-
-class WebManager {
-private:
-    AnimationPlayer* player;
-    Animation* animations[];
-    void handlePlayRequest(AsyncWebServerRequest *request);
-    Animation* findAnimation(String name);
-public:
-    WebManager(AnimationPlayer *player, Animation* animations[]);
-    void init(AsyncWebServer *server);
 };
 
 class Animation {
@@ -41,19 +31,32 @@ public:
     String name;
 public:
     Animation() { }
-    virtual boolean renderFrame(Canvas *canvas) = 0;
-    virtual void init(Canvas *canvas);
+    virtual boolean renderFrame(Canvas &canvas) = 0;
+    virtual void start(Board &board);
+    virtual void stop();
+    virtual boolean configure(AsyncWebServerRequest *request);
 };
 
 class AnimationPlayer {
 private:
     Animation *animation;
-    Canvas *canvas;
+    Board &board;
     long lastRender = 0;
 public:
-    AnimationPlayer(Canvas *canvas) {
-        this->canvas = canvas;
+    AnimationPlayer(Board& _board) : board(_board) {
     }
     void update(long currentTime);
     void setAnimation(Animation *animation);
+};
+
+class WebManager {
+private:
+    AnimationPlayer& player;
+    Animation** animations;
+    uint8_t numberOfAnimations = 0;
+    void handlePlayRequest(AsyncWebServerRequest *request);
+    Animation* findAnimation(String name);
+public:
+    WebManager(AnimationPlayer &player, Animation** animations, uint8_t numOfAnimations);
+    void init(AsyncWebServer *server);
 };
