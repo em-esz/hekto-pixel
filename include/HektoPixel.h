@@ -58,5 +58,5 @@ private:
     Animation* findAnimation(String name);
 public:
     WebManager(AnimationPlayer &player, Animation** animations, uint8_t numOfAnimations);
-    void init(AsyncWebServer *server);
+    void init(AsyncWebServer &server);
 };
