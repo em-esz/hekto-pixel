@@ -3,9 +3,9 @@
 class TextAnimation: public Animation {
     private:
         int pos = 0;
-        int textLength = 0;
+        int textLength = 42;
     public:
-        String message = "hello :)";
+        String message = "hello:)";
     public:
         TextAnimation(): Animation() {
             name = "text";
