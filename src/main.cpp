@@ -77,6 +77,8 @@ void setup() {
   firmwareUpdate.init(server);
   webManager.init(server);
 
+  player.setAnimation(animations[1]);
+
   SPIFFS.begin();
   server.begin();
 }
