@@ -30,11 +30,10 @@ const char* host = "hektopixel";
 const char* ssid = WIFI;
 const char* password = WIFI_PASS;
 
-ArtnetAnimation artnetAnimation;
-
+TextAnimation textAnimation;
 Animation* animations[NUM_OF_ANIMATIONS] = {
   new RandomNoise(),
-  new TextAnimation(),
+  &textAnimation,
   new ArtnetAnimation(),
   new Plasma()
 };
@@ -56,7 +55,7 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   digitalWrite(STATUS_LED, HIGH);
-
+  textAnimation.setMessage(WiFi.localIP().toString());
   if (!MDNS.begin(host)) {
     Serial.println(F("Error setting up MDNS responder!"));
     while (1) {
@@ -77,7 +76,7 @@ void setup() {
   firmwareUpdate.init(server);
   webManager.init(server);
 
-  player.setAnimation(animations[1]);
+  player.setAnimation(&textAnimation);
 
   SPIFFS.begin();
   server.begin();
