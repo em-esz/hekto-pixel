@@ -173,26 +173,26 @@ class WebOta {
         }
     public:
 
-        void init(AsyncWebServer *server) {
-            server->onNotFound([this](AsyncWebServerRequest *request){
+        void init(AsyncWebServer &server) {
+            server.onNotFound([this](AsyncWebServerRequest *request){
                 this->notFoundHandler(request);
             });
 
-            server->on("/spiffs", HTTP_GET,[this](AsyncWebServerRequest *request){ //read spiffs
+            server.on("/spiffs", HTTP_GET,[this](AsyncWebServerRequest *request){ //read spiffs
                 this->dirHandler(request);
             });
 
-            server->on("/spiffs", HTTP_DELETE,[this](AsyncWebServerRequest *request){ //delete file
+            server.on("/spiffs", HTTP_DELETE,[this](AsyncWebServerRequest *request){ //delete file
                 this->deleteHandler(request);
             });
 
-            server->on("/spiffs", HTTP_POST, [](AsyncWebServerRequest *request){
+            server.on("/spiffs", HTTP_POST, [](AsyncWebServerRequest *request){
                     request->send(200);
             }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) { //upload file
                 this->uploadHandler(request, filename, index, data, len, final);
             });
 
-            server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+            server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
                     request->send(200);
             }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
                 this->onFirmwareUpload(request, filename, index, data, len, final);

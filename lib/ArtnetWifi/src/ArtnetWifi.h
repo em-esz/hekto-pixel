@@ -49,6 +49,7 @@ public:
   ArtnetWifi();
 
   void begin(String hostname = "");
+  void stop();
   uint16_t read(void);
   /* returns 1 for Ok, or 0 on problem */
   int write(void);
