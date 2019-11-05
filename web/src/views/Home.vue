@@ -1,16 +1,12 @@
 <template>
   <div class="home">
-    <h2 class="subtitle">Mode</h2>
-    <div class="buttons">
-      <b-button type="is-primary" @click="sendMode('Artnet')">ArtNet</b-button>
-      <b-button type="is-primary" @click="sendMode('Animation')">Animation</b-button>
-    </div>
     <h2 class="subtitle">Animations</h2>
     <pre>
       Available animations
       - plasma
       - text - displays a scrolling text
       - noise - sets every pixel on the board to a random color
+      - artnet - acts as an ArtNet client
     </pre>
 
     <b-field label="Animation name">
@@ -22,7 +18,7 @@
     </b-notification>
     <pre style="margin-top:2rem;">
       Artnet settings:
-      LED type GRB
+      LED type RGB
       Universe 1: 20 x 8, LED starting top - left, snakewise ( only 0 - 480 channels are used )
       Universe 2: 20 x 7, LED starting top - left, snakewise ( only 0 - 420 channels are used )
     </pre>
@@ -42,21 +38,6 @@ export default {
       }
   },
     methods: {
-      sendMode: function (mode) {
-          fetch('http://' + window.location.host + '/set?mode=' + mode, { //play endpoint
-              method: 'GET',
-              headers: {
-              },
-          }).then(
-              () => {
-              }
-          ).catch(
-              error => {
-                  this.isError = true;
-                  this.errorMsg = error;
-              }
-          );
-      },
       sendPlay: function () {
           fetch('http://' + window.location.host + '/animation/play/' + this.animationName, { //play endpoint
               method: 'POST',

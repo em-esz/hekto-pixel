@@ -10,6 +10,14 @@ Available animations
 - plasma
 - text - displays a scrolling text
 - noise - sets every pixel on the board to a random color
+- artnet - acts as an ArtNet client
+
+
+# ArtNet settings
+
+LED type GRB
+Universe 1: 20 x 8, LED starting top - left, snakewise ( only 0 - 480 channels are used )
+Universe 2: 20 x 7, LED starting top - left, snakewise ( only 0 - 420 channels are used )
 
 # web GUI - go to /web
 
