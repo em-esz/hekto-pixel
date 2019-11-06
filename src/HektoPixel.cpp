@@ -34,6 +34,10 @@ void Board::setBrightness(uint8_t brightness) {
     FastLED.setBrightness(brightness);
 }
 
+void Board::writeRawLedData(uint8_t * data) {
+    memcpy(leds, data, BOARD_DATA_SIZE);
+}
+
 
 void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
     Animation *animation = this->findAnimation(request->pathArg(0));

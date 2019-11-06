@@ -5,6 +5,7 @@
 #include <FastLED.h>
 
 #define LED_DATA_PIN 14
+#define BOARD_DATA_SIZE 900
 
 typedef FastLED_NeoMatrix Canvas;
 
@@ -23,6 +24,7 @@ public:
     CRGB* getLeds();
     void show();
     void setBrightness(uint8_t brightness);
+    void writeRawLedData(uint8_t * data);
 };
 
 class Animation {
