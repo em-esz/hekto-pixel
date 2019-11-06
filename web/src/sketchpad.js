@@ -225,6 +225,7 @@ class Sketchpad {
       type: 'clear',
     });
       this.drawBlack();
+      this.resize();
   }
 
   redraw() {
