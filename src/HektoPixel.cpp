@@ -3,6 +3,9 @@
 #include "HektoPixel.h"
 #include "FastLED.h"
 #include "FastLED_NeoMatrix.h"
+#include "ArduinoJson.h"
+#include "AsyncJson.h"
+
 
 Board::Board(uint8_t width, uint8_t height) : width_(width), height_(height), size_(width * height) {
     this->leds = new CRGB[this->size_];
@@ -35,15 +38,26 @@ void Board::setBrightness(uint8_t brightness) {
 }
 
 
-void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
+void WebManager::handlePlayRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    if (len != total) {
+        Serial.print("Total different than current length: ");
+        Serial.print(total);
+        Serial.print(", ");
+        Serial.println(len);
+        request->send(400);
+    }
+    StaticJsonDocument<1024> doc;
+    DeserializationError error = deserializeJson(doc, data);
+    if (error) {
+        Serial.println(error.c_str());
+        request->send(400);
+    }
     Animation *animation = this->findAnimation(request->pathArg(0));
     if (animation == NULL) {
         request->send(404);
     } else {
-        if (animation->name == "text") {
-            if (!animation->configure(request)) {
-                request->send(400);
-            }
+        if (!animation->configure(doc)) {
+            request->send(400);
         }
         player.setAnimation(animation);
         request->send(200);
@@ -64,7 +78,12 @@ WebManager::WebManager(AnimationPlayer &_player, Animation **_animations, uint8_
 }
 
 void WebManager::init(AsyncWebServer &server) {
-    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, std::bind(&WebManager::handlePlayRequest, this, std::placeholders::_1));
+    using namespace::std::placeholders;
+    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, 
+    [](AsyncWebServerRequest *request) { request->send(200);},
+    NULL,
+    std::bind(&WebManager::handlePlayRequest, this, _1, _2, _3, _4, _5)
+    );
 }
 
 void AnimationPlayer::update(long currentTime) {
@@ -96,5 +115,12 @@ void Animation::stop() {
 }
 
 boolean Animation::configure(AsyncWebServerRequest *request) {
+    return true;
+}
+
+boolean Animation::configure(JsonDocument &config) {
+    if (config.containsKey(F("interval"))) {
+        interval = config[F("interval")];
+    }
     return true;
 }
