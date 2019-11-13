@@ -89,6 +89,9 @@ void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
 
 void WebManager::handleAnimationConfigRequest(AsyncWebServerRequest *request) {
     Animation* animation = player.getAnimation();
+    if (!request->pathArg(0).isEmpty()) {
+        animation = findAnimation(request->pathArg(0));
+    }    
     if (animation != NULL) {
         StaticJsonDocument<1024> doc;
         doc["animation"] = animation->name;
@@ -123,6 +126,7 @@ void WebManager::init(AsyncWebServer &server) {
                 std::bind(&WebManager::handlePlayRequestBody, this, _1, _2, _3, _4, _5)
     );
     server.on("/animation/config", HTTP_GET, std::bind(&WebManager::handleAnimationConfigRequest, this, _1));
+    server.on("^\\/animation\\/([0-9a-z]+)\\/config$", HTTP_GET, std::bind(&WebManager::handleAnimationConfigRequest, this, _1));
 }
 
 void AnimationPlayer::update(long currentTime) {
