@@ -38,29 +38,41 @@ void Board::setBrightness(uint8_t brightness) {
 }
 
 
-void WebManager::handlePlayRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     if (len != total) {
         Serial.print("Total different than current length: ");
         Serial.print(total);
         Serial.print(", ");
         Serial.println(len);
         request->send(400);
+        return;
     }
     StaticJsonDocument<1024> doc;
     DeserializationError error = deserializeJson(doc, data);
     if (error) {
         Serial.println(error.c_str());
         request->send(400);
+        return;
     }
     Animation *animation = this->findAnimation(request->pathArg(0));
     if (animation == NULL) {
         request->send(404);
+        return;
     } else {
         if (!animation->configure(doc)) {
             request->send(400);
-        }
+            return;
+        }        
+    }
+}
+
+void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
+    Animation *animation = this->findAnimation(request->pathArg(0));
+    if (animation != NULL) {
         player.setAnimation(animation);
         request->send(200);
+    } else {
+        request->send(500);
     }
 }
 
@@ -80,9 +92,9 @@ WebManager::WebManager(AnimationPlayer &_player, Animation **_animations, uint8_
 void WebManager::init(AsyncWebServer &server) {
     using namespace::std::placeholders;
     server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, 
-    [](AsyncWebServerRequest *request) { request->send(200);},
+    std::bind(&WebManager::handlePlayRequest, this, _1),
     NULL,
-    std::bind(&WebManager::handlePlayRequest, this, _1, _2, _3, _4, _5)
+    std::bind(&WebManager::handlePlayRequestBody, this, _1, _2, _3, _4, _5)
     );
 }
 

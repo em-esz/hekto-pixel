@@ -56,7 +56,8 @@ private:
     AnimationPlayer& player;
     Animation** animations;
     uint8_t numberOfAnimations = 0;
-    void handlePlayRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+    void handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+    void handlePlayRequest(AsyncWebServerRequest *request);
     Animation* findAnimation(String name);
 public:
     WebManager(AnimationPlayer &player, Animation** animations, uint8_t numOfAnimations);
