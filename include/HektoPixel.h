@@ -24,6 +24,7 @@ public:
     CRGB* getLeds();
     void show();
     void setBrightness(uint8_t brightness);
+    uint8_t getBrightness();
 };
 
 class Animation {
@@ -36,6 +37,7 @@ public:
     virtual void start(Board &board);
     virtual void stop();
     virtual boolean configure(JsonDocument &config);
+    virtual void dumpConfig(JsonDocument &config);
 };
 
 class AnimationPlayer {
@@ -48,6 +50,9 @@ public:
     }
     void update(long currentTime);
     void setAnimation(Animation *animation);
+    inline Animation* getAnimation() {
+        return animation;
+    }
 };
 
 class WebManager {
@@ -59,6 +64,7 @@ private:
     void handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
     void handlePlayRequest(AsyncWebServerRequest *request);
     void configureGlobalSettings(JsonDocument &config);
+    void handleAnimationConfigRequest(AsyncWebServerRequest * request);
     Animation* findAnimation(String name);
 public:
     WebManager(AnimationPlayer &player, Board &board, Animation** animations, uint8_t numOfAnimations);

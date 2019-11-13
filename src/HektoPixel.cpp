@@ -37,6 +37,10 @@ void Board::setBrightness(uint8_t brightness) {
     FastLED.setBrightness(brightness);
 }
 
+uint8_t Board::getBrightness() {
+    return FastLED.getBrightness();
+}
+
 
 void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     if (len != total) {
@@ -83,6 +87,21 @@ void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
     }
 }
 
+void WebManager::handleAnimationConfigRequest(AsyncWebServerRequest *request) {
+    Animation* animation = player.getAnimation();
+    if (animation != NULL) {
+        StaticJsonDocument<1024> doc;
+        doc["animation"] = animation->name;
+        doc["brightness"] = board.getBrightness();
+        animation->dumpConfig(doc);
+        String result;
+        serializeJson(doc, result);
+        request->send(200, F("application/json"), result);
+    } else {
+        request->send(404);
+    }
+}
+
 Animation* WebManager::findAnimation(String name) {
     for (int i = 0; i < numberOfAnimations; i++) {
         if (animations[i]->name == name) {
@@ -99,10 +118,11 @@ WebManager::WebManager(AnimationPlayer &_player, Board &_board, Animation **_ani
 void WebManager::init(AsyncWebServer &server) {
     using namespace::std::placeholders;
     server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, 
-    std::bind(&WebManager::handlePlayRequest, this, _1),
-    NULL,
-    std::bind(&WebManager::handlePlayRequestBody, this, _1, _2, _3, _4, _5)
+                std::bind(&WebManager::handlePlayRequest, this, _1),
+                NULL,
+                std::bind(&WebManager::handlePlayRequestBody, this, _1, _2, _3, _4, _5)
     );
+    server.on("/animation/config", HTTP_GET, std::bind(&WebManager::handleAnimationConfigRequest, this, _1));
 }
 
 void AnimationPlayer::update(long currentTime) {
@@ -138,4 +158,9 @@ boolean Animation::configure(JsonDocument &config) {
         interval = config[F("interval")];
     }
     return true;
+}
+
+void Animation::dumpConfig(JsonDocument &config) {
+    config[F("interval")] = interval;
+    return;
 }

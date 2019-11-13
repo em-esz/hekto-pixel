@@ -5,7 +5,7 @@ class TextAnimation: public Animation {
     private:
         int pos = 0;
         int textLength = 42;
-        CRGB textColor = CRGB::Green;
+        CRGB textColor = CRGB::White;
     public:
         String message = "hello:)";
     public:
@@ -45,5 +45,13 @@ class TextAnimation: public Animation {
                 this->textColor = CRGB(r, g, b);
             }
             return true;
+        }
+
+        void dumpConfig(JsonDocument &json) {
+            Animation::dumpConfig(json);
+            json[F("msg")] = message;
+            json[F("color")]["r"] = textColor.r;
+            json[F("color")]["g"] = textColor.g;
+            json[F("color")]["b"] = textColor.b;
         }
 };
