@@ -35,7 +35,6 @@ public:
     virtual boolean renderFrame(Canvas &canvas) = 0;
     virtual void start(Board &board);
     virtual void stop();
-    virtual boolean configure(AsyncWebServerRequest *request);
     virtual boolean configure(JsonDocument &config);
 };
 
@@ -54,12 +53,14 @@ public:
 class WebManager {
 private:
     AnimationPlayer& player;
+    Board& board;
     Animation** animations;
     uint8_t numberOfAnimations = 0;
     void handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
     void handlePlayRequest(AsyncWebServerRequest *request);
+    void configureGlobalSettings(JsonDocument &config);
     Animation* findAnimation(String name);
 public:
-    WebManager(AnimationPlayer &player, Animation** animations, uint8_t numOfAnimations);
+    WebManager(AnimationPlayer &player, Board &board, Animation** animations, uint8_t numOfAnimations);
     void init(AsyncWebServer &server);
 };

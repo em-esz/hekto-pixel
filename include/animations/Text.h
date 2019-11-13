@@ -32,14 +32,6 @@ class TextAnimation: public Animation {
             }
             return true;
         }
-        boolean configure(AsyncWebServerRequest *request) {
-            if (!request->hasParam("msg", true)) {
-                return false;
-            }
-            const String& msg = request->getParam("msg", true)->value();
-            setMessage(msg);
-            return true;
-        }
         boolean configure(JsonDocument &json) {
             Animation::configure(json);
             if (json.containsKey(F("msg"))) {

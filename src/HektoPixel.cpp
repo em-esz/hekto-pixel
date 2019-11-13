@@ -59,10 +59,17 @@ void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *
         request->send(404);
         return;
     } else {
+        configureGlobalSettings(doc);
         if (!animation->configure(doc)) {
             request->send(400);
             return;
         }        
+    }
+}
+
+void WebManager::configureGlobalSettings(JsonDocument &config) {
+    if (config.containsKey(F("brightness"))) {
+        board.setBrightness(config[F("brightness")]);
     }
 }
 
@@ -84,7 +91,7 @@ Animation* WebManager::findAnimation(String name) {
     }
     return NULL;
 }
-WebManager::WebManager(AnimationPlayer &_player, Animation **_animations, uint8_t _numberOfAnimations): player(_player) {
+WebManager::WebManager(AnimationPlayer &_player, Board &_board, Animation **_animations, uint8_t _numberOfAnimations): player(_player), board(_board) {
     animations = _animations;
     numberOfAnimations = _numberOfAnimations;
 }
@@ -124,10 +131,6 @@ void Animation::start(Board &board) {
 
 void Animation::stop() {
 
-}
-
-boolean Animation::configure(AsyncWebServerRequest *request) {
-    return true;
 }
 
 boolean Animation::configure(JsonDocument &config) {
