@@ -41,7 +41,7 @@ Animation* animations[NUM_OF_ANIMATIONS] = {
 };
 
 AnimationPlayer player(board);
-WebManager webManager(player, animations, NUM_OF_ANIMATIONS);
+WebManager webManager(player, board, animations, NUM_OF_ANIMATIONS);
 
 void setup() {
   Serial.begin(115200);

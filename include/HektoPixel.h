@@ -3,6 +3,7 @@
 #include <functional>
 #include <FastLED_NeoMatrix.h>
 #include <FastLED.h>
+#include "ArduinoJson.h"
 
 #define LED_DATA_PIN 14
 #define BOARD_DATA_SIZE 900
@@ -36,7 +37,8 @@ public:
     virtual boolean renderFrame(Canvas &canvas) = 0;
     virtual void start(Board &board);
     virtual void stop();
-    virtual boolean configure(AsyncWebServerRequest *request);
+    virtual boolean configure(JsonDocument &config);
+    virtual void dumpConfig(JsonDocument &config);
 };
 
 class AnimationPlayer {
@@ -49,16 +51,23 @@ public:
     }
     void update(long currentTime);
     void setAnimation(Animation *animation);
+    inline Animation* getAnimation() {
+        return animation;
+    }
 };
 
 class WebManager {
 private:
     AnimationPlayer& player;
+    Board& board;
     Animation** animations;
     uint8_t numberOfAnimations = 0;
+    void handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
     void handlePlayRequest(AsyncWebServerRequest *request);
+    void configureGlobalSettings(JsonDocument &config);
+    void handleAnimationConfigRequest(AsyncWebServerRequest * request);
     Animation* findAnimation(String name);
 public:
-    WebManager(AnimationPlayer &player, Animation** animations, uint8_t numOfAnimations);
+    WebManager(AnimationPlayer &player, Board &board, Animation** animations, uint8_t numOfAnimations);
     void init(AsyncWebServer &server);
 };

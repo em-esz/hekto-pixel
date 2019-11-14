@@ -18,9 +18,24 @@
         <div v-if="animationSelection === 'text'">
             <pre>Description: displays a scrolling text</pre>
 
-            <b-field label="Text to show" style="margin-top: 1rem;">
-                <b-input v-model="msg"></b-input>
-            </b-field>
+            <div class="columns" style="margin-top: 1rem;">
+                <div class="column">
+                    <b-field label="Text to show" >
+                        <b-input v-model="msg"></b-input>
+                    </b-field>
+                </div>
+                <div class="column is-1 has-text-centered">
+                    <b-field label="Color" class="has-text-centered">
+                        <swatches v-model="textColor" colors="text-advanced"></swatches>
+                    </b-field>
+                </div>
+                <div class="column">
+                    <b-field label="Interval">
+                        <b-slider size="is-large" :min="30" :max="300" v-model="interval" style="margin-top:1.4rem;"></b-slider>
+                    </b-field>
+                </div>
+            </div>
+
         </div>
 
         <div v-if="animationSelection === 'noise'">
@@ -42,7 +57,6 @@
                 <b-input v-model="animationName"></b-input>
             </b-field>
         </div>
-
 
         <pre style="margin-top:2rem;">
       Artnet settings:
@@ -89,6 +103,8 @@
                 animationSelection: 'text',
                 animationName: '',
                 msg: 'hello :)',
+                textColor: '#FF0000',
+                interval: 50,
                 sketchpad: null,
                 sketchpadColor: '#2cffd4',
                 isSuccess: false,
@@ -112,6 +128,14 @@
             this.sketchpad.on('show', this.sendData)
         },
         methods: {
+            hexToRGB(h) {
+                let hex = h.replace('#','');
+                let r = parseInt(hex.substring(0,2), 16);
+                let g = parseInt(hex.substring(2,4), 16);
+                let b = parseInt(hex.substring(4,6), 16);
+
+                return {r,g,b};
+            },
             changeColor: function () {
                 this.sketchpad.color = this.sketchpadColor;
             },
@@ -143,14 +167,18 @@
                 this.sketchpad.redo();
             },
             sendPlay: function () {
-                let formData = new FormData();
                 let animation = this.animationSelection;
-                if (this.animationSelection === 'text') formData.append('msg', this.msg);
+                let jsonPayload = {};
+                if (this.animationSelection === 'text') {
+                    jsonPayload['msg'] = this.msg;
+                    jsonPayload['color'] = this.hexToRGB(this.textColor);
+                    jsonPayload['interval'] = this.interval;
+                }
                 if (this.animationSelection === 'other') animation = this.animationName;
                 fetch('http://' + window.location.host + '/animation/play/' + animation, { //play endpoint
                     method: 'POST',
                     headers: {},
-                    body: formData
+                    body: JSON.stringify(jsonPayload)
                 }).then(
                     () => {
                         this.isSuccess = true;

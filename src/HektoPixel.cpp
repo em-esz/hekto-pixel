@@ -3,6 +3,9 @@
 #include "HektoPixel.h"
 #include "FastLED.h"
 #include "FastLED_NeoMatrix.h"
+#include "ArduinoJson.h"
+#include "AsyncJson.h"
+
 
 Board::Board(uint8_t width, uint8_t height) : width_(width), height_(height), size_(width * height) {
     this->leds = new CRGB[this->size_];
@@ -39,18 +42,67 @@ void Board::writeRawLedData(uint8_t * data) {
 }
 
 
-void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
+
+void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    if (len != total) {
+        Serial.print("Total different than current length: ");
+        Serial.print(total);
+        Serial.print(", ");
+        Serial.println(len);
+        request->send(400);
+        return;
+    }
+    StaticJsonDocument<1024> doc;
+    DeserializationError error = deserializeJson(doc, data);
+    if (error) {
+        Serial.println(error.c_str());
+        request->send(400);
+        return;
+    }
     Animation *animation = this->findAnimation(request->pathArg(0));
     if (animation == NULL) {
         request->send(404);
+        return;
     } else {
-        if (animation->name == "text") {
-            if (!animation->configure(request)) {
-                request->send(400);
-            }
+        configureGlobalSettings(doc);
+        if (!animation->configure(doc)) {
+            request->send(400);
+            return;
         }
+    }
+}
+
+void WebManager::configureGlobalSettings(JsonDocument &config) {
+    if (config.containsKey(F("brightness"))) {
+        board.setBrightness(config[F("brightness")]);
+    }
+}
+
+void WebManager::handlePlayRequest(AsyncWebServerRequest *request) {
+    Animation *animation = this->findAnimation(request->pathArg(0));
+    if (animation != NULL) {
         player.setAnimation(animation);
         request->send(200);
+    } else {
+        request->send(500);
+    }
+}
+
+void WebManager::handleAnimationConfigRequest(AsyncWebServerRequest *request) {
+    Animation* animation = player.getAnimation();
+    if (!request->pathArg(0).isEmpty()) {
+        animation = findAnimation(request->pathArg(0));
+    }
+    if (animation != NULL) {
+        StaticJsonDocument<1024> doc;
+        doc["animation"] = animation->name;
+        doc["brightness"] = board.getBrightness();
+        animation->dumpConfig(doc);
+        String result;
+        serializeJson(doc, result);
+        request->send(200, F("application/json"), result);
+    } else {
+        request->send(404);
     }
 }
 
@@ -62,13 +114,20 @@ Animation* WebManager::findAnimation(String name) {
     }
     return NULL;
 }
-WebManager::WebManager(AnimationPlayer &_player, Animation **_animations, uint8_t _numberOfAnimations): player(_player) {
+WebManager::WebManager(AnimationPlayer &_player, Board &_board, Animation **_animations, uint8_t _numberOfAnimations): player(_player), board(_board) {
     animations = _animations;
     numberOfAnimations = _numberOfAnimations;
 }
 
 void WebManager::init(AsyncWebServer &server) {
-    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, std::bind(&WebManager::handlePlayRequest, this, std::placeholders::_1));
+    using namespace::std::placeholders;
+    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST,
+                std::bind(&WebManager::handlePlayRequest, this, _1),
+                NULL,
+                std::bind(&WebManager::handlePlayRequestBody, this, _1, _2, _3, _4, _5)
+    );
+    server.on("/animation/config", HTTP_GET, std::bind(&WebManager::handleAnimationConfigRequest, this, _1));
+    server.on("^\\/animation\\/([0-9a-z]+)\\/config$", HTTP_GET, std::bind(&WebManager::handleAnimationConfigRequest, this, _1));
 }
 
 void AnimationPlayer::update(long currentTime) {
@@ -99,6 +158,14 @@ void Animation::stop() {
 
 }
 
-boolean Animation::configure(AsyncWebServerRequest *request) {
+boolean Animation::configure(JsonDocument &config) {
+    if (config.containsKey(F("interval"))) {
+        interval = config[F("interval")];
+    }
     return true;
+}
+
+void Animation::dumpConfig(JsonDocument &config) {
+    config[F("interval")] = interval;
+    return;
 }

@@ -1,9 +1,11 @@
 #include "HektoPixel.h"
+#include "ArduinoJson.h"
 
 class TextAnimation: public Animation {
     private:
         int pos = 0;
         int textLength = 42;
+        CRGB textColor = CRGB::White;
     public:
         String message = "hello:)";
     public:
@@ -14,7 +16,7 @@ class TextAnimation: public Animation {
         void start(Board &board) {
             Animation::start(board);
             board.getMatrix().setTextWrap(false);
-            board.getMatrix().setTextColor(board.getMatrix().Color(0, 255, 0));
+            board.getMatrix().setTextColor(board.getMatrix().Color(textColor.r, textColor.g, textColor.b));
             pos = board.width();
         }
         void setMessage(const String& msg) {
@@ -30,12 +32,26 @@ class TextAnimation: public Animation {
             }
             return true;
         }
-        boolean configure(AsyncWebServerRequest *request) {
-            if (!request->hasParam("msg", true)) {
-                return false;
+        boolean configure(JsonDocument &json) {
+            Animation::configure(json);
+            if (json.containsKey(F("msg"))) {
+                setMessage(json[F("msg")]);
             }
-            const String& msg = request->getParam("msg", true)->value();
-            setMessage(msg);
+            if (json.containsKey(F("color"))) {
+                JsonObject color = json[F("color")];
+                uint8_t r = color["r"];
+                uint8_t g = color["g"];
+                uint8_t b = color["b"];
+                this->textColor = CRGB(r, g, b);
+            }
             return true;
+        }
+
+        void dumpConfig(JsonDocument &json) {
+            Animation::dumpConfig(json);
+            json[F("msg")] = message;
+            json[F("color")]["r"] = textColor.r;
+            json[F("color")]["g"] = textColor.g;
+            json[F("color")]["b"] = textColor.b;
         }
 };
