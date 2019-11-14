@@ -41,6 +41,9 @@ uint8_t Board::getBrightness() {
     return FastLED.getBrightness();
 }
 
+void Board::writeRawLedData(uint8_t * data) {
+    memcpy(leds, data, BOARD_DATA_SIZE);
+}
 
 void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     if (len != total) {
@@ -67,7 +70,7 @@ void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *
         if (!animation->configure(doc)) {
             request->send(400);
             return;
-        }        
+        }
     }
 }
 
@@ -91,7 +94,7 @@ void WebManager::handleAnimationConfigRequest(AsyncWebServerRequest *request) {
     Animation* animation = player.getAnimation();
     if (!request->pathArg(0).isEmpty()) {
         animation = findAnimation(request->pathArg(0));
-    }    
+    }
     if (animation != NULL) {
         StaticJsonDocument<1024> doc;
         doc["animation"] = animation->name;
@@ -120,7 +123,7 @@ WebManager::WebManager(AnimationPlayer &_player, Board &_board, Animation **_ani
 
 void WebManager::init(AsyncWebServer &server) {
     using namespace::std::placeholders;
-    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST, 
+    server.on("^\\/animation\\/play\\/([0-9a-z]+)$", HTTP_POST,
                 std::bind(&WebManager::handlePlayRequest, this, _1),
                 NULL,
                 std::bind(&WebManager::handlePlayRequestBody, this, _1, _2, _3, _4, _5)

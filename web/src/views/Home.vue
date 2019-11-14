@@ -58,6 +58,25 @@
             </b-field>
         </div>
 
+        <div v-show="animationSelection === 'sketch'">
+            <div class="has-text-centered is-flex">
+                <div style="flex:1" class="is-flex">
+                    <canvas id="sketchpad"></canvas>
+                    <swatches v-model="sketchpadColor" colors="text-advanced" @input="changeColor"></swatches>
+                </div>
+
+                <canvas id="hektopixel"></canvas>
+
+            </div>
+            <b-button class="is-primary" @click="clear">clear</b-button>
+            <b-button class="is-primary" @click="animate">animate</b-button>
+            <b-button class="is-primary" @click="cancelAnimation">cancel animation</b-button>
+            <b-button class="is-primary" @click="reset">reset animation</b-button>
+            <b-button class="is-primary" @click="undo">undo</b-button>
+            <b-button class="is-primary" @click="redo">redo</b-button>
+        </div>
+
+
         <b-notification has-icon style="margin-top: 1rem;" type="is-danger" aria-close-label="Close"
                         :active.sync="isError">
             {{errorMsg}}
@@ -66,7 +85,10 @@
 </template>
 
 <script>
+    import Sketchpad from '../sketchpad'
     import Swatches from 'vue-swatches'
+    import _ from 'lodash'
+
     import "vue-swatches/dist/vue-swatches.min.css"
 
     export default {
@@ -74,16 +96,36 @@
         components: {Swatches},
         data() {
             return {
-                animationNames: ['text', 'plasma', 'noise', 'artnet', 'other'],
+                animationNames: ['text', 'plasma', 'noise', 'artnet', 'sketch', 'other'],
                 animationSelection: 'text',
                 animationName: '',
                 msg: 'hello :)',
                 textColor: '#FF0000',
                 interval: 50,
+                sketchpad: null,
+                sketchpadColor: '#2cffd4',
                 isSuccess: false,
                 isError: false,
                 errorMsg: 'Something went wrong.',
             }
+        },
+        beforeDestroy: function() {
+            this.$disconnect();
+        },
+        mounted: function () {
+            this.$connect();
+            this.sketchpad = new Sketchpad({
+                element: '#sketchpad',
+                destination: '#hektopixel',
+                width: 400,
+                height: 300,
+            });
+            // Change color
+            this.changeColor();
+
+            // Change stroke size
+            this.sketchpad.penSize = 10;
+            this.sketchpad.on('show', this.sendData)
         },
         methods: {
             hexToRGB(h) {
@@ -94,6 +136,31 @@
 
                 return {r,g,b};
             },
+            changeColor: function () {
+                this.sketchpad.color = this.sketchpadColor;
+            },
+            sendData: _.throttle(function (data) {
+                if (this.$socket)
+                    this.$socket.send(data);
+            }, 25),
+            clear: function () {
+                this.sketchpad.clear();
+            },
+            cancelAnimation: function () {
+                this.sketchpad.cancelAnimation();
+            },
+            animate: function () {
+                this.sketchpad.animate(25, true);
+            },
+            reset: function () {
+                this.sketchpad.reset();
+            },
+            undo: function () {
+                this.sketchpad.undo();
+            },
+            redo: function () {
+                this.sketchpad.redo();
+            },
             sendPlay: function () {
                 let animation = this.animationSelection;
                 let jsonPayload = {};
@@ -101,6 +168,13 @@
                     jsonPayload['msg'] = this.msg;
                     jsonPayload['color'] = this.hexToRGB(this.textColor);
                     jsonPayload['interval'] = this.interval;
+                }
+                if (this.animationSelection === 'sketch') {
+                    setTimeout(function(){
+                        this.$connect('ws://' + window.location.host + '/sketch');
+                    }.bind(this),1000);
+                } else {
+                    this.$disconnect();
                 }
                 if (this.animationSelection === 'other') animation = this.animationName;
                 fetch('http://' + window.location.host + '/animation/play/' + animation, { //play endpoint
@@ -121,3 +195,18 @@
         }
     }
 </script>
+<style>
+    #sketchpad {
+        cursor: crosshair;
+    }
+    #hektopixel {
+        cursor: not-allowed;
+        width: 400px;
+        height: 300px;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -o-crisp-edges;
+        image-rendering: -webkit-optimize-contrast;
+        -ms-interpolation-mode: nearest-neighbor;
+        image-rendering: pixelated;
+    }
+</style>

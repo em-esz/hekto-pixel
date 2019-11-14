@@ -7,8 +7,8 @@ class ArtnetAnimation: public Animation {
     private:
         uint16_t universes[2] = {0, 480};
         ArtnetWifi artnet;
-        uint8_t * displayBuffer = (uint8_t*) malloc(900);
-        uint8_t * dmxBuffer = (uint8_t*) malloc(900);
+        uint8_t * displayBuffer = (uint8_t*) malloc(BOARD_DATA_SIZE);
+        uint8_t * dmxBuffer = (uint8_t*) malloc(BOARD_DATA_SIZE);
         bool receviedUniverses[2] = {false, false};
         boolean displayFrame = false;
         Board * board;
@@ -23,7 +23,7 @@ class ArtnetAnimation: public Animation {
             if (receviedUniverses[0] && receviedUniverses[1]) {
                 receviedUniverses[0] = false;
                 receviedUniverses[1] = false;
-                memcpy(displayBuffer, dmxBuffer, 900);
+                memcpy(displayBuffer, dmxBuffer, BOARD_DATA_SIZE);
                 displayFrame = true;
             }            
         }
@@ -37,7 +37,7 @@ class ArtnetAnimation: public Animation {
         boolean renderFrame(Canvas &canvas) {
             artnet.read();
             if (displayFrame) {
-                memcpy(board->getLeds(), displayBuffer, 900);
+                board->writeRawLedData(displayBuffer);
                 displayFrame = false;
                 return true;
             }

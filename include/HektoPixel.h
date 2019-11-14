@@ -6,6 +6,7 @@
 #include "ArduinoJson.h"
 
 #define LED_DATA_PIN 14
+#define BOARD_DATA_SIZE 900
 
 typedef FastLED_NeoMatrix Canvas;
 
@@ -25,6 +26,7 @@ public:
     void show();
     void setBrightness(uint8_t brightness);
     uint8_t getBrightness();
+    void writeRawLedData(uint8_t * data);
 };
 
 class Animation {
