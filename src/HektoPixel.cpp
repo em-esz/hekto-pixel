@@ -37,11 +37,13 @@ void Board::setBrightness(uint8_t brightness) {
     FastLED.setBrightness(brightness);
 }
 
+uint8_t Board::getBrightness() {
+    return FastLED.getBrightness();
+}
+
 void Board::writeRawLedData(uint8_t * data) {
     memcpy(leds, data, BOARD_DATA_SIZE);
 }
-
-
 
 void WebManager::handlePlayRequestBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     if (len != total) {

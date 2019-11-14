@@ -58,27 +58,24 @@
             </b-field>
         </div>
 
-        <pre style="margin-top:2rem;">
-      Artnet settings:
-      LED type RGB
-      Universe 1: 20 x 8, LED starting top - left, snakewise ( only 0 - 480 channels are used )
-      Universe 2: 20 x 7, LED starting top - left, snakewise ( only 0 - 420 channels are used )
-    </pre>
-        <div class="has-text-centered is-flex">
-            <div style="flex:1" class="is-flex">
-                <canvas id="sketchpad"></canvas>
-                <swatches v-model="sketchpadColor" colors="text-advanced" @input="changeColor"></swatches>
+        <div v-show="animationSelection === 'sketch'">
+            <div class="has-text-centered is-flex">
+                <div style="flex:1" class="is-flex">
+                    <canvas id="sketchpad"></canvas>
+                    <swatches v-model="sketchpadColor" colors="text-advanced" @input="changeColor"></swatches>
+                </div>
+
+                <canvas id="hektopixel"></canvas>
+
             </div>
-
-            <canvas id="hektopixel"></canvas>
-
+            <b-button class="is-primary" @click="clear">clear</b-button>
+            <b-button class="is-primary" @click="animate">animate</b-button>
+            <b-button class="is-primary" @click="cancelAnimation">cancel animation</b-button>
+            <b-button class="is-primary" @click="reset">reset animation</b-button>
+            <b-button class="is-primary" @click="undo">undo</b-button>
+            <b-button class="is-primary" @click="redo">redo</b-button>
         </div>
-        <b-button class="is-primary" @click="clear">clear</b-button>
-        <b-button class="is-primary" @click="animate">animate</b-button>
-        <b-button class="is-primary" @click="cancelAnimation">cancel animation</b-button>
-        <b-button class="is-primary" @click="reset">reset animation</b-button>
-        <b-button class="is-primary" @click="undo">undo</b-button>
-        <b-button class="is-primary" @click="redo">redo</b-button>
+
 
         <b-notification has-icon style="margin-top: 1rem;" type="is-danger" aria-close-label="Close"
                         :active.sync="isError">
@@ -99,7 +96,7 @@
         components: {Swatches},
         data() {
             return {
-                animationNames: ['text', 'plasma', 'noise', 'artnet', 'other'],
+                animationNames: ['text', 'plasma', 'noise', 'artnet', 'sketch', 'other'],
                 animationSelection: 'text',
                 animationName: '',
                 msg: 'hello :)',
@@ -111,6 +108,9 @@
                 isError: false,
                 errorMsg: 'Something went wrong.',
             }
+        },
+        beforeDestroy: function() {
+            this.$disconnect();
         },
         mounted: function () {
             this.$connect();
@@ -141,13 +141,8 @@
             },
             sendData: _.throttle(function (data) {
                 if (this.$socket)
-                    this.$socket.send(data.buffer);
-            }, 200).bind(this),
-            sendData2(data) {
-                console.log(data);
-                if (this.$socket)
                     this.$socket.send(data);
-            },
+            }, 25),
             clear: function () {
                 this.sketchpad.clear();
             },
@@ -173,6 +168,13 @@
                     jsonPayload['msg'] = this.msg;
                     jsonPayload['color'] = this.hexToRGB(this.textColor);
                     jsonPayload['interval'] = this.interval;
+                }
+                if (this.animationSelection === 'sketch') {
+                    setTimeout(function(){
+                        this.$connect('ws://' + window.location.host + '/sketch');
+                    }.bind(this),1000);
+                } else {
+                    this.$disconnect();
                 }
                 if (this.animationSelection === 'other') animation = this.animationName;
                 fetch('http://' + window.location.host + '/animation/play/' + animation, { //play endpoint

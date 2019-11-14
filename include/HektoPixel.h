@@ -25,6 +25,7 @@ public:
     CRGB* getLeds();
     void show();
     void setBrightness(uint8_t brightness);
+    uint8_t getBrightness();
     void writeRawLedData(uint8_t * data);
 };
 

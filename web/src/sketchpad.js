@@ -3,7 +3,6 @@ class Sketchpad {
     // Support both old api (element) and new (canvas)
     options.canvas = options.canvas || options.element;
     if (!options.canvas) {
-      console.error('[SKETCHPAD]: Please provide an element/canvas:');
         return;
     }
 
@@ -323,7 +322,7 @@ class Sketchpad {
   on(action, callback) {
     // Tell the user if the action he has input was invalid
     if (this.events[action] === undefined) {
-      return console.error(`Sketchpad: No such action '${action}'`);
+      return;
     }
 
     this.events[action].push(callback);
