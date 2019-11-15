@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include <WiFi.h>
-#include <ESPmDNS.h>
 #include <FS.h>
 #include <SPIFFS.h>
 #include <ArtnetWifi.h>
@@ -27,7 +26,6 @@ WebOta firmwareUpdate;
 AsyncWebSocket previewSocket("/ws");
 Board board(M_WIDTH, M_HEIGHT);
 
-const char* host = "hektopixel";
 const char* ssid = WIFI;
 const char* password = WIFI_PASS;
 
@@ -57,13 +55,6 @@ void setup() {
   Serial.println(WiFi.localIP());
   digitalWrite(STATUS_LED, HIGH);
   textAnimation.setMessage(WiFi.localIP().toString());
-  if (!MDNS.begin(host)) {
-    Serial.println(F("Error setting up MDNS responder!"));
-    while (1) {
-      delay(1000);
-    }
-  }
-  Serial.println(F("mDNS responder started"));
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE");
