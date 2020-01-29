@@ -31,10 +31,11 @@ const char* ssid = WIFI;
 const char* password = WIFI_PASS;
 
 TextAnimation textAnimation;
+ArtnetAnimation artnetAnimation;
 Animation* animations[NUM_OF_ANIMATIONS] = {
   new RandomNoise(),
   &textAnimation,
-  new ArtnetAnimation(),
+  &artnetAnimation,
   new Plasma(),
   new SketchClient(server),
   new Arcade()
@@ -82,6 +83,8 @@ void loop() {
     digitalWrite(STATUS_LED, LOW);
     ESP.restart();
   }
+
+  artnetAnimation.readArtnetPackets();
 
   EVERY_N_MILLISECONDS(250) { //refresh of 4Hz
     previewSocket.cleanupClients();
