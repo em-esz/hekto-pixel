@@ -14,12 +14,13 @@
 #include "animations/ArtNet.h"
 #include "animations/Plasma.h"
 #include "animations/Sketch.h"
+#include "animations/Arcade.h"
 
 #define STATUS_LED 2
 #define M_WIDTH 20
 #define M_HEIGHT 15
 #define NUM_LEDS (M_WIDTH*M_HEIGHT)
-#define NUM_OF_ANIMATIONS 5
+#define NUM_OF_ANIMATIONS 6
 
 AsyncWebServer server(80);
 WebOta firmwareUpdate;
@@ -35,7 +36,8 @@ Animation* animations[NUM_OF_ANIMATIONS] = {
   &textAnimation,
   new ArtnetAnimation(),
   new Plasma(),
-  new SketchClient(server)
+  new SketchClient(server),
+  new Arcade()
 };
 
 AnimationPlayer player(board);
