@@ -5,12 +5,12 @@ class Arcade: public Animation {
     private:
         int currentFrame = 0;
         CRGB backgroundColor PROGMEM = CRGB(0, 77, 0);
-        Mario mario = Mario();
+        Mario mario;
 
     public:
         Arcade() : Animation() {
             name = "arcade";
-            interval = 200;
+            interval = 150;
         }
 
         boolean configure(JsonDocument &json) {
@@ -26,19 +26,22 @@ class Arcade: public Animation {
         }
         
         boolean renderFrame(Canvas &canvas) {
+            currentFrame++;
             for (int16_t x = 0; x < canvas.width(); x++) {
                 for (int16_t y = 0; y < canvas.height(); y++) {
-                    uint32_t color = pgm_read_dword(&mario.marioFrames[currentFrame][y][x]);
+                    uint32_t color = pgm_read_dword(&mario.getFrames()[currentFrame-1][y][x]);
                     drawPixel(x, y, canvas, color);
                 }
             }
-            currentFrame = currentFrame == 0;
+            if (currentFrame > 3) {
+                currentFrame = 0;
+            } 
 
             return true;
         }
 
         void drawPixel(int16_t &x, int16_t &y, Canvas &canvas, uint32_t &pixelColor) {
-            if (pixelColor != mario.marioBgColor) {
+            if (pixelColor != mario.getBackgroundColor()) {
                 canvas.drawPixel(x, y, canvas.Color24to16(pixelColor));
             } else {
                 canvas.drawPixel(x, y, canvas.CRGBtoint32(pgm_read_dword(&this->backgroundColor)));
